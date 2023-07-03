@@ -2,12 +2,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def get_rsi_values(data, period = 14):
+def get_rsi(data, period = 14):
     """
     RSI indicator value calculation
     Input: 
     data frame with price of the stock
-    period: moving window for gain and loss
+    period: moving window size for avg gain and avg loss calculation 
     Output: 
     Price and RSI values
     """
@@ -27,7 +27,7 @@ def get_rsi_values(data, period = 14):
     # average loss
     rsi_data['avg_loss'] = rsi_data['loss'].rolling(window= period).mean()
     # rs
-    rsi_data['rs'] = rsi_data['avg_gain'] / rsi_data['avg_loss']
+    rsi_data['rs'] = rsi_data['avg_gain'] / (rsi_data['avg_loss'] + 0.00005)
     # rsi
     rsi_data['rsi'] = 100 - 100 / (1 + rsi_data['rs'])
     return rsi_data[['price', 'rsi']]
@@ -57,18 +57,31 @@ def get_rsi_signal(rsi, buy_threshold = 20, sell_threshold = 80):
     return signals[['price','buy_sell']]
 
 def plot_rsi_buy_sell(rsi, signals, buy_threshold = 20, sell_threshold = 80):
+    
     """
     Plot rsi with buy and sell signal
     """
     graph = plt.figure(figsize=(20,5))
-    ax2 = graph.add_subplot(1,1,1)
-    rsi[['rsi']].plot(ax=ax2,title = 'RSI signals')
-    ax2.axhline(y= buy_threshold, color = "g", lw = 2.)
-    ax2.axhline(y= sell_threshold, color = "r", lw = 2.)
-    ax2.plot(signals.loc[signals.buy_sell == 1].index, rsi.rsi[signals.buy_sell == 1],"^", markersize = 12, color ='g')
-    ax2.plot(signals.loc[signals.buy_sell == -1].index, rsi.rsi[signals.buy_sell == -1],"v", markersize = 12, color ='m')
+    ax1 = graph.add_subplot(1,1,1)
+    rsi[['rsi']].plot(ax=ax1,title = 'RSI value and Buy, Sell signals')
+    ax1.axhline(y= buy_threshold, color = "g", lw = 2.)
+    ax1.axhline(y= sell_threshold, color = "r", lw = 2.)
+    ax1.plot(signals.loc[signals.buy_sell == 1].index, rsi.rsi[signals.buy_sell == 1],"^", markersize = 12, color ='g')
+    ax1.plot(signals.loc[signals.buy_sell == -1].index, rsi.rsi[signals.buy_sell == -1],"v", markersize = 12, color ='m')
     # plt.show()
     plt.show()
+    
+    
+def plot_rsi_price_buy_sell(signals):
+    fig = plt.figure(figsize=(30, 15))
+    ax1 = fig.add_subplot(2, 1, 1)
+    signals[['price']].plot(ax= ax1, title = 'Price with Buy and Sell Signal', lw=3.0)
+    # ax1.axhline(y=20, color = "g", lw=2.0)
+    ax1.plot(signals.loc[signals.buy_sell == 1].index, signals.price[signals.buy_sell == 1],"^", markersize = 12, color ='g')
+    ax1.plot(signals.loc[signals.buy_sell == -1].index, signals.price[signals.buy_sell == -1],"v", markersize = 12, color ='m')
+    plt.show()
+    
+    
     
     
  
